@@ -1,0 +1,104 @@
+:root {
+  --app-background: #f3f6fb;
+  --app-foreground: #172033;
+  --app-muted: #6b7280;
+  --app-accent: #3759c7;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  background: var(--app-background);
+  color: var(--app-foreground);
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-header {
+  background:
+    radial-gradient(ellipse at top right, rgba(109, 143, 255, 0.36), transparent 38%),
+    linear-gradient(120deg, #172b63, #294aa0 62%, #4063c4);
+  color: #fff;
+}
+
+.app-header p {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.app-panel {
+  border: 1px solid #e5eaf2;
+  border-radius: 1rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(29, 48, 86, 0.06);
+}
+
+.country-list-scroll {
+  max-height: 36rem;
+  overflow-y: auto;
+  scrollbar-color: #b7c3dd transparent;
+  scrollbar-width: thin;
+}
+
+.country-card {
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.country-card:hover {
+  border-color: #9aafea !important;
+  box-shadow: 0 0.4rem 1rem rgba(41, 74, 160, 0.12);
+  transform: translateY(-2px);
+}
+
+.country-card-selected {
+  border-color: var(--app-accent) !important;
+  box-shadow: 0 0 0 0.18rem rgba(55, 89, 199, 0.14);
+}
+
+.country-flag {
+  height: 8rem;
+  background: #f1f4f9;
+}
+
+.country-flag img {
+  object-fit: cover;
+}
+
+.detail-flag {
+  position: relative;
+  width: 6rem;
+  height: 4rem;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid #e5eaf2;
+  border-radius: 0.5rem;
+  background: #f1f4f9;
+}
+
+.detail-flag img {
+  object-fit: cover;
+}
+
+.weather-panel {
+  border: 0;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #3159c5, #493c9e);
+  color: #fff;
+}
+
+.weather-stat {
+  height: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .country-card {
+    transition: none;
+  }
+}

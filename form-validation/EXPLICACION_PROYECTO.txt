@@ -1,0 +1,266 @@
+EXPLICACION DEL PROYECTO: EXPLORADOR DE PAISES Y CLIMA
+========================================================
+
+OBJETIVO
+--------
+Esta aplicacion permite explorar paises, buscar uno por su nombre y consultar
+informacion basica como bandera, capital, region y poblacion. Al seleccionar
+un pais, tambien intenta consultar el clima actual de su capital.
+
+La interfaz esta construida con Next.js y React. Bootstrap proporciona la
+mayoria de las clases de diseño y distribucion; globals.css contiene algunos
+estilos personalizados para la apariencia de la aplicacion.
+
+
+RECORRIDO GENERAL DE LA APLICACION
+----------------------------------
+1. Next.js abre la ruta principal y presenta el componente Home de page.js.
+2. Home solicita los datos de paises al servicio getCountries.
+3. La lista se ordena alfabeticamente y se muestra en CountryList.
+4. CountryList filtra los paises mientras la persona escribe en el buscador.
+5. Al pulsar una tarjeta, el pais seleccionado se muestra en el panel de
+   detalles y se consulta el clima de su capital.
+6. WeatherInfo muestra el resultado, un indicador de carga o un mensaje.
+
+
+ARCHIVOS DEL PROYECTO
+---------------------
+
+1. package.json
+---------------
+Este archivo describe el proyecto y sus dependencias.
+
+- next, react y react-dom son la base de la aplicacion web.
+- bootstrap contiene los estilos y componentes visuales de Bootstrap 5.
+- El script "dev" inicia el servidor para desarrollo.
+- El script "build" genera y comprueba la version de produccion.
+- El script "start" ejecuta la version de produccion ya generada.
+
+
+2. next.config.mjs
+------------------
+Es el archivo de configuracion de Next.js.
+
+- reactCompiler activa la integracion del compilador de React.
+- images.remotePatterns indica que Next.js puede cargar imagenes desde
+  flagcdn.com. Esta configuracion se utiliza para las imagenes de banderas
+  remotas mostradas con next/image.
+
+
+3. src/app/layout.js
+--------------------
+Define la estructura comun que envuelve las paginas de la aplicacion.
+
+- Importa la hoja de estilos de Bootstrap para que sus clases esten disponibles
+  en toda la aplicacion.
+- Importa globals.css, donde estan los estilos propios del proyecto.
+- metadata establece el titulo y la descripcion de la pagina.
+- El atributo lang="es" indica que el contenido esta en espanol.
+- RootLayout recibe children y lo coloca dentro de la estructura HTML general.
+
+
+4. src/app/globals.css
+----------------------
+Contiene estilos CSS propios que complementan Bootstrap.
+
+- Las variables de :root definen colores principales reutilizables.
+- body establece el color de fondo y el color general del texto.
+- app-shell ocupa como minimo toda la altura de la pantalla.
+- app-header crea el encabezado con fondo degradado.
+- app-panel da bordes redondeados y sombra a los paneles principales.
+- country-list-scroll limita la altura de la lista y permite desplazarse dentro
+  de ella.
+- country-card define la respuesta visual de las tarjetas al pasar el cursor.
+- country-card-selected resalta el pais actualmente seleccionado.
+- country-flag y detail-flag controlan el tamano y el recorte de las banderas.
+- weather-panel y weather-stat dan estilo al panel del clima y a sus datos.
+- prefers-reduced-motion reduce las transiciones para quienes prefieren menos
+  movimiento en pantalla.
+
+
+5. src/app/page.js
+------------------
+Es la pagina principal y controla el estado y el flujo de la aplicacion.
+
+La directiva 'use client' indica que este componente necesita ejecutarse en el
+navegador porque utiliza estado, efectos y eventos de usuario.
+
+Importaciones:
+- useState guarda datos que cambian durante el uso de la pagina.
+- useEffect ejecuta tareas al cargar la pagina o cuando cambia el pais elegido.
+- getCountries y getCapitalWeather son funciones del servicio de datos.
+- CountryList y WeatherInfo son componentes separados que forman la interfaz.
+- Image es el componente optimizado de Next.js para mostrar banderas.
+
+Estados principales:
+- countries contiene la lista recibida desde las fuentes de datos.
+- selectedCountry contiene el pais elegido.
+- weather contiene la respuesta del servicio meteorologico.
+- loadingCountries y loadingWeather indican si hay solicitudes en curso.
+- errorGlobal y errorWeather guardan mensajes para informar al usuario.
+
+Primer useEffect:
+- Se ejecuta al cargar la pagina.
+- Llama a getCountries para solicitar los datos.
+- Ordena los paises alfabeticamente por nombre comun.
+- Guarda los resultados en countries.
+- Si ocurre un problema, presenta un mensaje general.
+- Al terminar, desactiva el indicador de carga.
+
+Segundo useEffect:
+- Depende de selectedCountry, por lo que vuelve a ejecutarse cuando se elige
+  otro pais.
+- Obtiene la primera capital registrada.
+- Si no hay capital, informa que no se puede hacer esa consulta.
+- Si existe, llama a getCapitalWeather y guarda la respuesta.
+- Controla los estados de carga y los mensajes del clima.
+
+Interfaz:
+- El encabezado presenta el nombre y la descripcion de la aplicacion.
+- Bootstrap container, row, col y g-4 organizan el contenido de forma
+  adaptable a distintos tamanos de pantalla.
+- CountryList recibe la lista, el pais seleccionado, la funcion para cambiarlo
+  y el indicador de carga.
+- El panel de detalles presenta la bandera, nombre, region, capital y poblacion.
+- WeatherInfo recibe el clima, el estado de carga, el mensaje y el nombre de
+  la capital.
+
+
+6. src/app/services/api.js
+--------------------------
+Reune las funciones que obtienen datos desde servicios externos. De este modo,
+la logica de las solicitudes queda separada de la interfaz.
+
+Direcciones de datos:
+- COUNTRIES_DATA_URL apunta al archivo publico de datos de paises alojado en
+  jsDelivr.
+- POPULATION_DATA_URL solicita datos de poblacion al Banco Mundial para el
+  indicador SP.POP.TOTL y el ano 2024.
+- WEATHER_API_URL apunta al servicio actual de clima de OpenWeatherMap.
+
+Funcion getCountries:
+- Hace las solicitudes de paises y poblacion en paralelo mediante Promise.all.
+- Comprueba que ambas respuestas HTTP sean correctas.
+- Convierte las respuestas a JSON.
+- Comprueba que los datos tengan el formato esperado.
+- Crea un Map que relaciona el codigo ISO de tres letras con la poblacion.
+- Filtra registros que tengan nombre comun y codigo de pais.
+- Adapta los campos al formato que usa la interfaz:
+  name, flags, capital, cca3, region y population.
+- Construye las direcciones de las banderas a partir del codigo ISO de dos
+  letras.
+- Si la solicitud falla, escribe el detalle en la consola y propaga el error
+  para que la pagina pueda mostrar un mensaje.
+
+Funcion getCapitalWeather:
+- Lee la variable de entorno NEXT_PUBLIC_WEATHER_API_KEY.
+- Construye la solicitud a OpenWeatherMap con el nombre de la capital.
+- encodeURIComponent prepara el texto de la capital para utilizarlo en una URL.
+- units=metric solicita valores en unidades metricas.
+- lang=es solicita descripciones en espanol.
+- Devuelve la respuesta JSON con los datos meteorologicos.
+- Si la clave no esta disponible o la solicitud falla, genera un error que
+  puede gestionar la pagina.
+
+La clave meteorologica se configura en el archivo local .env.local usando el
+nombre NEXT_PUBLIC_WEATHER_API_KEY. No se debe incluir el valor de la clave en
+el material de exposicion ni publicarlo en repositorios abiertos.
+
+
+7. src/app/components/CountryList.jsx
+-------------------------------------
+Presenta el buscador y la lista de tarjetas de paises.
+
+- useState conserva lo que se escribe en el buscador.
+- countries contiene los paises que recibe desde page.js.
+- El filtro compara el nombre comun en minusculas para que la busqueda no
+  dependa de mayusculas y minusculas.
+- Mientras se cargan los datos, presenta LoadingSpinner.
+- El input de Bootstrap permite escribir el texto de busqueda.
+- Las clases row, row-cols-* y col crean una cuadrícula adaptable.
+- Cada resultado se muestra con CountryCard.
+- La comparacion de cca3 permite indicar que tarjeta esta seleccionada.
+- Si no hay coincidencias, muestra un mensaje con el texto buscado.
+
+
+8. src/app/components/CountryCard.jsx
+-------------------------------------
+Representa una tarjeta individual de un pais.
+
+- Recibe el pais, la funcion de seleccion y el indicador de seleccion.
+- Obtiene de forma segura el nombre, la capital y la direccion de la bandera.
+- next/image muestra la bandera optimizada.
+- Si el pais no tiene imagen, presenta un texto alternativo.
+- El elemento button hace que la tarjeta pueda activarse con mouse o teclado.
+- aria-pressed comunica a tecnologias de asistencia si la tarjeta esta
+  seleccionada.
+- Las clases country-card y country-card-selected controlan su apariencia.
+- La tarjeta presenta el nombre, la capital y la region.
+
+
+9. src/app/components/WeatherInfo.jsx
+-------------------------------------
+Muestra el estado y los datos del clima para la capital seleccionada.
+
+El componente tiene tres presentaciones:
+- Si loading es verdadero, presenta LoadingSpinner.
+- Si existe error, muestra una alerta de Bootstrap con el mensaje.
+- Si aun no hay datos de clima, invita a seleccionar un pais.
+- Cuando hay datos, presenta nombre de la ciudad, temperatura, descripcion,
+  humedad y velocidad del viento.
+
+La temperatura se redondea para facilitar su lectura. Los valores se leen de
+las propiedades main, weather y wind que entrega OpenWeatherMap.
+Las clases de Bootstrap organizan los datos en una cuadrícula de dos columnas.
+weather-panel y weather-stat aportan los colores personalizados.
+
+
+10. src/app/components/LoadingSpinner.jsx
+-----------------------------------------
+Es un componente reutilizable para indicar que se estan cargando datos.
+
+- Recibe un texto message; si no se proporciona, utiliza un mensaje general.
+- spinner-border es el indicador animado de Bootstrap.
+- role="status" ayuda a las tecnologias de asistencia a identificar el estado
+  de carga.
+- Se utiliza tanto al cargar paises como al consultar el clima.
+
+
+BOOTSTRAP EN LA INTERFAZ
+------------------------
+Bootstrap se importa una sola vez en layout.js. Algunos grupos de clases
+utilizados en las pantallas son:
+
+- container: centra el contenido y limita su ancho.
+- row y col: distribuyen el contenido en columnas adaptables.
+- card y card-body: crean paneles y tarjetas.
+- form-control e input-group: dan formato al buscador.
+- alert: presenta mensajes informativos.
+- badge: muestra etiquetas pequenas, como el total de paises.
+- d-flex y gap-*: organizan elementos con flexbox y espacios uniformes.
+- text-secondary, fw-bold, small y py-*: controlan color, peso, tamano y
+  espaciado del texto.
+
+
+GUION BREVE PARA EXPONER
+------------------------
+"Mi proyecto es un explorador de paises y clima desarrollado con Next.js y
+React. La pantalla principal obtiene y organiza los datos de paises. Estos
+aparecen en una lista con buscador; al elegir uno, se muestran detalles y se
+consulta el clima de su capital. La informacion se solicita desde un modulo de
+servicios separado de la interfaz. CountryList, CountryCard, WeatherInfo y
+LoadingSpinner son componentes reutilizables, cada uno encargado de una parte
+visual. Bootstrap organiza la pagina y globals.css agrega los estilos propios.
+La aplicacion tambien controla los estados de carga y muestra mensajes cuando
+una consulta no puede completarse."
+
+
+TECNOLOGIAS UTILIZADAS
+----------------------
+- Next.js: framework de React para construir la aplicacion web.
+- React: componentes, estado y actualizacion de la interfaz.
+- Bootstrap 5: sistema de estilos y diseño adaptable.
+- CSS: detalles visuales personalizados.
+- jsDelivr: distribucion publica del conjunto de datos de paises.
+- Banco Mundial: datos del indicador de poblacion.
+- OpenWeatherMap: informacion meteorologica de las capitales.
